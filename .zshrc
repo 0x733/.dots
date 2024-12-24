@@ -112,12 +112,18 @@ alias ara='ara(){ find / -type f -name "$@" -print 2>/dev/null }; ara'
 alias gs='git status'
 alias ga='git add .'
 alias gc='f() {
-    sanatlar=(
-    "(-_-)" "(>‿◠)✌" "(⌐■_■)" "¯\_(ツ)_/¯" "(╯°□°）╯︵ ┻━┻" "ᕦ(ò_óˇ)ᕤ" "(｡◕‿◕｡)" "(づ｡◕‿‿◕｡)づ" "⊂(◉‿◉)つ" "(~˘▾˘)~" "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"
+    m=(
+    "♠" "♥" "♦" "♣" "♤" "♡" "♢" "♧"
     )
-    zaman=$(date +%H:%M)
-    printf -v komut "git commit -m \"%s %s\"" "${sanatlar[$RANDOM % ${#sanatlar[@]}]}" "$zaman"
-    eval $komut
+    tarih=$(date +"%d-%m-%Y %H:%M")
+    kullanici=$(whoami)
+    dal=$(git branch --show-current)
+    printf -v k "git commit -m \"%s [%s@%s] %s\"" \
+    "${m[$RANDOM % ${#m[@]}]}" \
+    "$kullanici" \
+    "$dal" \
+    "$tarih"
+    eval $k
 }; f'
 alias gp='git push -u origin main'
 alias gl='git pull'
