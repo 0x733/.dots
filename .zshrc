@@ -111,15 +111,13 @@ alias ara='ara(){ find / -type f -name "$@" -print 2>/dev/null }; ara'
 # Git Shortcuts
 alias gs='git status'
 alias ga='git add .'
-alias gc='f() { 
-    local cyber=("⟊" "⟧" "⟨" "⟩" "⟪" "⟫" "⟰" "⟱" "⟲" "⟳" "⟴" "⟵" "⟶" "⟷" "⟸" "⟹" "⟺" "⟻" "⟼" "⟽" "⟾" "⟿")
-    local kanji=("零" "壱" "弐" "参" "肆" "伍" "陸" "漆" "捌" "玖" "拾")
-    local matrix=("⠅" "⠆" "⠇" "⠈" "⠉" "⠊" "⠋" "⠌" "⠍" "⠎" "⠏" "⠐" "⠑" "⠒" "⠓" "⠔" "⠕" "⠖" "⠗" "⠘" "⠙" "⠚" "⠛" "⠜" "⠝" "⠞" "⠟" "⠠" "⠡" "⠢" "⠣" "⠤" "⠥" "⠦" "⠧" "⠨" "⠩" "⠪" "⠫" "⠬" "⠭" "⠮" "⠯" "⠰" "⠱" "⠲" "⠳" "⠴" "⠵" "⠶" "⠷" "⠸" "⠹" "⠺" "⠻" "⠼" "⠽" "⠾" "⠿")
-    local elements=("炎" "氷" "風" "雷" "闇" "光" "空" "星" "夢" "魂" "命" "霊" "鬼" "龍" "神")
-    local time=$(date +%H:%M)
-    local date=$(date +%d)
-    printf -v commit "git commit -m \"%s%s %s %s %s%s\"" "${cyber[$RANDOM % ${#cyber[@]}]}" "${matrix[$RANDOM % ${#matrix[@]}]}" "${elements[$RANDOM % ${#elements[@]}]}" "${kanji[$((date % 11))]}" "${matrix[$RANDOM % ${#matrix[@]}]}" "$time"
-    eval $commit
+alias gc='f() {
+    sanatlar=(
+    "(-_-)" "(>‿◠)✌" "(⌐■_■)" "¯\_(ツ)_/¯" "(╯°□°）╯︵ ┻━┻" "ᕦ(ò_óˇ)ᕤ" "(｡◕‿◕｡)" "(づ｡◕‿‿◕｡)づ" "⊂(◉‿◉)つ" "(~˘▾˘)~" "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"
+    )
+    zaman=$(date +%H:%M)
+    printf -v komut "git commit -m \"%s %s\"" "${sanatlar[$RANDOM % ${#sanatlar[@]}]}" "$zaman"
+    eval $komut
 }; f'
 alias gp='git push -u origin main'
 alias gl='git pull'
