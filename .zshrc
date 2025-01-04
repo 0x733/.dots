@@ -71,6 +71,9 @@ alias chown='chown --preserve-root'
 alias chmod='chmod --preserve-root'
 alias chgrp='chgrp --preserve-root'
 
+# SSH File Transfer
+alias sshsend='function _sshsend() { cat "$1" | ssh root@192.168.1.1 "cat > /tmp/$1"; }; _sshsend'
+
 # System Monitoring and Management
 alias df='df -h'
 alias du='du -ch'
