@@ -10,6 +10,12 @@ export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="xiong-chiamiov-plus"
 umask 022
 ENABLE_CORRECTION="true"
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="xiong-chiamiov-plus"
+umask 022
+ENABLE_CORRECTION="true"
+fastfetch -c $HOME/.config/fastfetch/config-compact.jsonc
+source <(fzf --zsh)
 
 #  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 #  ┃                      PLUGINS                            ┃
