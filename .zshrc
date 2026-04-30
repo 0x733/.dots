@@ -151,6 +151,7 @@ alias ipv4="nmcli device show | awk '/IP4.ADDRESS/{print \$2}' | cut -d'/' -f1 |
 alias ipv6="nmcli device show | awk '/IP6.ADDRESS/{print \$2}' | cut -d'/' -f1 | head -1"
 alias ping='ping -c 5'
 alias ssh='ssh -o ConnectTimeout=5 -o LogLevel=ERROR -o StrictHostKeyChecking=no'
+alias set-ttl-65='sudo sysctl -w net.ipv4.ip_default_ttl=65'
 
 # -- Git --
 alias gp='git push -u origin $(git branch --show-current)'
