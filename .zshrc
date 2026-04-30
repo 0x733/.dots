@@ -3,9 +3,19 @@
 # =============================================================================
 # 1. ENVIRONMENT VARIABLES
 # =============================================================================
-export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
+export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$HOME/.abacusai/bin:$PATH"
 export EDITOR="nano"
 export VISUAL="nano"
+
+if command -v bat &> /dev/null; then
+    export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+    export BAT_THEME="TwoDark"
+fi
+
+export LESS='-R --mouse --wheel-lines=3'
+export LESSHISTFILE=-
+export REPORTTIME=10
+export TIMEFMT='%J: %*Es'
 
 
 # =============================================================================
@@ -16,10 +26,14 @@ ZSH_THEME="agnosterzak"
 
 plugins=(
     git sudo web-search
-    python pip docker 
-    history-substring-search fzf
+    python pip docker
+    history-substring-search
     colored-man-pages archlinux eza
+    command-not-found
 )
+
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 
 source "$ZSH/oh-my-zsh.sh"
 
@@ -28,14 +42,18 @@ source "$ZSH/oh-my-zsh.sh"
 # 3. HISTORY CONFIGURATION
 # =============================================================================
 HISTFILE=~/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
+HISTSIZE=100000
+SAVEHIST=100000
 
-setopt append_history
-setopt hist_ignore_all_dups
-setopt hist_save_no_dups
-setopt hist_find_no_dups
-setopt share_history
+setopt APPEND_HISTORY
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_FIND_NO_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_VERIFY
+setopt HIST_FCNTL_LOCK
+setopt SHARE_HISTORY
 
 HISTORY_IGNORE="(ls|cd|pwd|exit|sudo reboot|history|cd -|cd ..|c)"
 
@@ -43,18 +61,74 @@ HISTORY_IGNORE="(ls|cd|pwd|exit|sudo reboot|history|cd -|cd ..|c)"
 # =============================================================================
 # 4. ZSH COMPLETION & OPTIONS
 # =============================================================================
-setopt auto_cd
-setopt auto_pushd
-setopt pushd_ignore_dups
+setopt AUTO_CD
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt NO_BEEP
+setopt EXTENDED_GLOB
+setopt GLOB_DOTS
+
+_comp_options+=(globdots)
+WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
 
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "$HOME/.zsh/cache"
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*:*:*:*:*' menu select
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+zstyle ':completion:*:warnings' format '%F{red}-- no matches: %d --%f'
 
 
 # =============================================================================
-# 5. ALIASES
+# 5. KEYBINDINGS
 # =============================================================================
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+bindkey '^[OA' history-substring-search-up
+bindkey '^[OB' history-substring-search-down
+bindkey '^[^[[C' forward-word
+bindkey '^[^[[D' backward-word
+bindkey '^[[H' beginning-of-line
+bindkey '^[[F' end-of-line
+bindkey '^H' backward-kill-word
+bindkey '^U' backward-kill-line
+bindkey '^[.' insert-last-word
+
+
+# =============================================================================
+# 6. FZF CONFIGURATION
+# =============================================================================
+export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --inline-info"
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+export FZF_CTRL_R_OPTS='--sort --exact'
+
+
+# =============================================================================
+# 7. ALIASES
+# =============================================================================
+
+# -- Global --
+alias -g G='| grep -i'
+alias -g L='| less'
+alias -g H='| head'
+alias -g T='| tail'
+alias -g C='| wl-copy'
+alias -g NUL='>/dev/null 2>&1'
+
+# -- Suffix --
+if command -v mpv &> /dev/null; then
+    alias -s {mp4,mkv,avi,webm,MP4,MKV,AVI}=mpv
+fi
+if command -v zathura &> /dev/null; then
+    alias -s {pdf,PDF}=zathura
+fi
+if command -v imv &> /dev/null; then
+    alias -s {jpg,jpeg,png,gif,webp,bmp,JPG,PNG}=imv
+fi
+alias -s {html,htm}=firefox
 
 # -- Navigation & Basic Commands --
 alias ..='cd ..'
@@ -62,7 +136,7 @@ alias ...='cd ../..'
 alias ....='cd ../../..'
 alias c='clear'
 alias zrc='source ~/.zshrc'
-alias zedit='$EDITOR ~/.zshrc'
+alias zedit='$EDITOR ~/Belgeler/Projeler/dotfiles/.zshrc'
 alias path='print -l $path'
 
 # -- File Operations --
@@ -97,9 +171,16 @@ if command -v dircolors &> /dev/null; then
     alias egrep='egrep --color=auto'
 fi
 
+if command -v trash &> /dev/null; then
+    alias tp='trash'
+    alias tpl='trash-list'
+    alias tpr='trash-restore'
+    alias tpe='trash-empty'
+fi
+
 # -- System & Monitoring --
 alias df='df -h'
-alias du='du -ch'
+alias du='du -ch --max-depth=1'
 alias usage='du -ch -d 1'
 alias free='free -m'
 alias mem="free -h | awk '/^Mem:/ {print \$3 \" / \" \$2}'"
@@ -109,6 +190,8 @@ alias temp='sensors | grep "Core"'
 alias top='btop'
 alias psu='ps -U $USER -u $USER u'
 alias ports='sudo ss -tulanp'
+alias ip='ip --color=auto'
+alias mkp='make -j$(nproc)'
 
 # -- Systemd & Journal --
 alias sc='sudo systemctl'
@@ -116,6 +199,8 @@ alias scu='systemctl --user'
 alias scs='sudo systemctl status'
 alias jc='sudo journalctl -xeu'
 alias jcf='sudo journalctl -f'
+alias jcb='sudo journalctl -b'
+alias boottime='systemd-analyze && systemd-analyze blame | head -20'
 
 # -- Package Managers (Arch / CachyOS) --
 alias sysupdate='paru -Syu && flatpak update -y'
@@ -145,13 +230,19 @@ alias fpks='flatpak search'
 
 # -- Network --
 alias wget='wget -c'
-alias curl='curl -O -L -C - -#'
+alias curl='curl -L -#'
+alias curlget='curl -O -L -C - -#'
 alias myip='wget -qO- ifconfig.io/ip ; echo'
 alias ipv4="nmcli device show | awk '/IP4.ADDRESS/{print \$2}' | cut -d'/' -f1 | head -1"
 alias ipv6="nmcli device show | awk '/IP6.ADDRESS/{print \$2}' | cut -d'/' -f1 | head -1"
 alias ping='ping -c 5'
-alias ssh='ssh -o ConnectTimeout=5 -o LogLevel=ERROR -o StrictHostKeyChecking=no'
+alias ssh='ssh -o ConnectTimeout=5 -o LogLevel=ERROR -o StrictHostKeyChecking=accept-new'
 alias set-ttl-65='sudo sysctl -w net.ipv4.ip_default_ttl=65'
+
+# -- rsync --
+alias rcp='rsync -avh --progress'
+alias rmv='rsync -avh --progress --remove-source-files'
+alias rbk='rsync -avh --progress --backup --backup-dir=$(date +%Y%m%d)'
 
 # -- Git --
 alias gp='git push -u origin $(git branch --show-current)'
@@ -163,11 +254,51 @@ alias p='python3'
 
 
 # =============================================================================
-# 6. FUNCTIONS
+# 8. FUNCTIONS
 # =============================================================================
 
-search() { 
-    find / -type f -name "*$1*" -print 2>/dev/null 
+search() {
+    local dir="${2:-.}"
+    find "$dir" -type f -iname "*$1*" 2>/dev/null
+}
+
+up() {
+    local count="${1:-1}"
+    local path=""
+    for i in $(seq 1 "$count"); do
+        path="../$path"
+    done
+    cd "$path" || return 1
+}
+
+mkcd() { mkdir -p "$1" && cd "$1" }
+
+cdl() { cd "$1" && ls }
+
+bak() {
+    if [ -z "$1" ]; then
+        echo "Usage: bak <file>"
+        return 1
+    fi
+    cp -iv "$1" "${1}.bak.$(date +%Y%m%d_%H%M%S)"
+}
+
+sysinfo() {
+    echo "OS:     $(uname -sr)"
+    echo "Host:   $(hostname)"
+    echo "Uptime: $(uptime -p)"
+    echo "Memory: $(free -h | awk '/^Mem:/ {print $3 "/" $2}')"
+    echo "Disk:   $(df -h / | awk 'NR==2 {print $3 "/" $2 " (" $5 ")"}')"
+}
+
+gitlog() {
+    git log --graph \
+        --pretty=format:'%C(red)%h%Creset %C(yellow)%d%Creset %s %C(green)(%cr) %C(bold blue)<%an>%Creset' \
+        --abbrev-commit "$@" |
+    fzf --ansi --no-sort --reverse \
+        --preview 'echo {}' \
+        --preview-window=down:3:wrap \
+        --bind 'enter:execute(echo {} | grep -o "[a-f0-9]\{7,\}" | head -1 | xargs git show --stat | less -R)'
 }
 
 pack() {
@@ -191,6 +322,8 @@ ex() {
     if [ -f "$1" ]; then
         case "$1" in
             *.tar.bz2|*.tar.gz|*.tar|*.tbz2|*.tgz|*.tar.xz) tar xf "$1" ;;
+            *.tar.zst)   tar --use-compress-program=unzstd -xf "$1" ;;
+            *.zst)       unzstd "$1" ;;
             *.bz2)       bunzip2 "$1"    ;;
             *.rar)       unrar x "$1"    ;;
             *.gz)        gunzip "$1"     ;;
@@ -233,18 +366,17 @@ genpass() {
     local length=20
     local use_specials=1
 
-    # Check arguments
     for arg in "$@"; do
         if [[ "$arg" =~ ^[0-9]+$ ]]; then
             length="$arg"
-        elif [[ "$arg" == "-s" || "$arg" == "--no-special" ]]; then
+        elif [[ "$arg" == "-n" || "$arg" == "--no-special" ]]; then
             use_specials=0
         elif [[ "$arg" == "-h" || "$arg" == "--help" ]]; then
-            echo "Kullanım: genpass [uzunluk] [-s|--no-special]"
+            echo "Kullanım: genpass [uzunluk] [-n|--no-special]"
             echo "Örnekler:"
             echo "  genpass             (20 karakter, özel karakterli)"
             echo "  genpass 16          (16 karakter, özel karakterli)"
-            echo "  genpass 12 -s       (12 karakter, özel karaktersiz)"
+            echo "  genpass 12 -n       (12 karakter, özel karaktersiz)"
             return 0
         fi
     done
@@ -256,7 +388,7 @@ genpass() {
 
     local pass=$(LC_ALL=C tr -dc "$charset" < /dev/urandom | head -c "$length")
     echo "$pass"
-    
+
     if command -v wl-copy &> /dev/null; then
         echo -n "$pass" | wl-copy
         echo "(Panoya kopyalandı - Wayland)"
@@ -268,7 +400,7 @@ genpass() {
 
 
 # =============================================================================
-# 7. SHELL INTEGRATIONS
+# 9. SHELL INTEGRATIONS
 # =============================================================================
 
 if command -v dircolors &> /dev/null; then
@@ -279,8 +411,15 @@ if command -v fzf &> /dev/null; then
     source <(fzf --zsh)
 fi
 
-[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && \
+    source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ] && \
+    source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+if command -v zoxide &> /dev/null; then
+    eval "$(zoxide init zsh --cmd cd)"
+fi
 
 if command -v fastfetch &> /dev/null; then
     fastfetch -c "$HOME/.config/fastfetch/config-compact.jsonc"
