@@ -1,0 +1,121 @@
+add_newline = true
+command_timeout = 1200
+scan_timeout = 30
+format = "$os$hostname$directory$git_branch$git_status$package$docker_context$kubernetes$python$nodejs$rust$golang$java$aws$gcloud$line_break$character"
+right_format = "$status$cmd_duration$time"
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold blue)"
+
+[directory]
+truncation_length = 4
+truncate_to_repo = false
+style = "bold #7aa2f7"
+read_only = " "
+read_only_style = "bold #f7768e"
+
+[git_branch]
+symbol = " "
+style = "bold #bb9af7"
+
+[git_status]
+style = "bold #ff9e64"
+conflicted = "="
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked = "?${count}"
+stashed = "\$${count}"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
+
+[package]
+symbol = "󰏗 "
+style = "bold #9ece6a"
+
+[docker_context]
+symbol = " "
+style = "bold #7dcfff"
+
+[kubernetes]
+disabled = false
+symbol = "☸ "
+style = "bold #7dcfff"
+format = "[$symbol$context( \($namespace\))]($style) "
+
+[[kubernetes.contexts]]
+context_pattern = ".*prod.*|.*production.*"
+style = "bold #f7768e"
+context_alias = "prod"
+
+[[kubernetes.contexts]]
+context_pattern = ".*staging.*|.*stage.*"
+style = "bold #e0af68"
+context_alias = "stg"
+
+[[kubernetes.contexts]]
+context_pattern = ".*dev.*"
+style = "bold #9ece6a"
+context_alias = "dev"
+
+[python]
+symbol = " "
+style = "bold #9ece6a"
+
+[nodejs]
+symbol = "󰎙 "
+style = "bold #9ece6a"
+
+[rust]
+symbol = "󱘗 "
+style = "bold #f7768e"
+
+[golang]
+symbol = " "
+style = "bold #7dcfff"
+
+[java]
+symbol = " "
+style = "bold #f7768e"
+
+[aws]
+symbol = " "
+style = "bold #e0af68"
+
+[gcloud]
+symbol = " "
+style = "bold #7dcfff"
+
+[cmd_duration]
+min_time = 400
+format = "[󱎫 $duration](bold #e0af68) "
+
+[status]
+disabled = false
+symbol = "✖"
+success_symbol = ""
+format = "[$symbol $status](bold #f7768e) "
+
+[hostname]
+ssh_only = true
+format = "[$hostname](bold #f7768e) "
+
+[time]
+disabled = false
+time_format = "%H:%M:%S"
+format = "[ $time](bold #7aa2f7) "
+
+[os]
+disabled = false
+style = "bold #565f89"
+
+[os.symbols]
+Fedora = " "
+Arch = " "
+Ubuntu = " "
+Macos = " "
+Windows = "󰍲 "

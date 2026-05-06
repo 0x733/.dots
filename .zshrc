@@ -3,7 +3,7 @@
 # =============================================================================
 # 1. ENVIRONMENT VARIABLES
 # =============================================================================
-export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$HOME/.abacusai/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.cargo/bin:$HOME/go/bin:$HOME/.npm-global/bin:$HOME/.pnpm:$HOME/.local/share/pnpm:$HOME/.abacusai/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:$PATH"
 export EDITOR="nano"
 export VISUAL="nano"
 
@@ -22,13 +22,19 @@ export TIMEFMT='%J: %*Es'
 # 2. OH MY ZSH & PLUGINS
 # =============================================================================
 export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="agnosterzak"
+if command -v starship &> /dev/null; then
+    ZSH_THEME=""
+elif [ -f "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k/powerlevel10k.zsh-theme" ]; then
+    ZSH_THEME="powerlevel10k/powerlevel10k"
+else
+    ZSH_THEME="agnoster"
+fi
 
 plugins=(
     git sudo web-search
     python pip docker
     history-substring-search
-    colored-man-pages archlinux eza
+    colored-man-pages eza
     command-not-found
 )
 
@@ -36,6 +42,15 @@ ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 
 source "$ZSH/oh-my-zsh.sh"
+
+if command -v starship &> /dev/null; then
+    export STARSHIP_CONFIG="$HOME/Belgeler/Projeler/dotfiles/.config/starship.toml"
+    eval "$(starship init zsh)"
+elif [ -f "$HOME/Belgeler/Projeler/dotfiles/.p10k.zsh" ]; then
+    source "$HOME/Belgeler/Projeler/dotfiles/.p10k.zsh"
+elif [ -f ~/.p10k.zsh ]; then
+    source ~/.p10k.zsh
+fi
 
 
 # =============================================================================
@@ -128,7 +143,9 @@ fi
 if command -v imv &> /dev/null; then
     alias -s {jpg,jpeg,png,gif,webp,bmp,JPG,PNG}=imv
 fi
-alias -s {html,htm}=firefox
+if command -v firefox &> /dev/null; then
+    alias -s {html,htm}=firefox
+fi
 
 # -- Navigation & Basic Commands --
 alias ..='cd ..'
@@ -173,22 +190,19 @@ fi
 
 if command -v trash &> /dev/null; then
     alias tp='trash'
-    alias tpl='trash-list'
-    alias tpr='trash-restore'
-    alias tpe='trash-empty'
 fi
 
 # -- System & Monitoring --
 alias df='df -h'
 alias du='du -ch --max-depth=1'
-alias usage='du -ch -d 1'
 alias free='free -m'
 alias mem="free -h | awk '/^Mem:/ {print \$3 \" / \" \$2}'"
-alias cpu="vmstat 1 2 | tail -1 | awk '{printf \"%d%%\\n\", 100 - \$15}'"
-alias disk='df -h | grep "^/dev/"'
-alias temp='sensors | grep "Core"'
-alias top='btop'
-alias psu='ps -U $USER -u $USER u'
+if command -v sensors &> /dev/null; then
+    alias temp='sensors | grep "Core"'
+fi
+if command -v btop &> /dev/null; then
+    alias top='btop'
+fi
 alias ports='sudo ss -tulanp'
 alias ip='ip --color=auto'
 alias mkp='make -j$(nproc)'
@@ -202,22 +216,15 @@ alias jcf='sudo journalctl -f'
 alias jcb='sudo journalctl -b'
 alias boottime='systemd-analyze && systemd-analyze blame | head -20'
 
-# -- Package Managers (Arch / CachyOS) --
-alias sysupdate='paru -Syu && flatpak update -y'
-alias cleanup='paru -c && paru -Sc --noconfirm && flatpak remove --unused'
-alias sysmaint='paru -c && paru -Sc --noconfirm && flatpak remove --unused && sudo journalctl --vacuum-time=7d'
+# -- Package Managers (Fedora / DNF) --
+alias sysupdate='sudo dnf upgrade -y && flatpak update -y'
+alias cleanup='sudo dnf autoremove -y && sudo dnf clean all && flatpak remove --unused'
+alias sysmaint='sudo dnf autoremove -y && sudo dnf clean all && flatpak remove --unused && sudo journalctl --vacuum-time=7d'
 
-alias paci='sudo pacman -S'
-alias pacr='sudo pacman -Rns'
-alias pacs='pacman -Ss'
-alias pacinfo='pacman -Si'
-
-alias pari='paru -S'
-alias parr='paru -Rns'
-alias pars='paru -Ss'
-alias parinfo='paru -Si'
-
-alias upmirrors='sudo cachyos-rate-mirrors'
+alias dnfi='sudo dnf install'
+alias dnfr='sudo dnf remove'
+alias dnfs='dnf search'
+alias dnfinfo='dnf info'
 
 # -- Flatpak --
 alias fpk='flatpak'
@@ -248,8 +255,10 @@ alias rbk='rsync -avh --progress --backup --backup-dir=$(date +%Y%m%d)'
 alias gp='git push -u origin $(git branch --show-current)'
 
 # -- Media & Misc --
-alias yt='yt-dlp -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4] / bv*+ba/b" --merge-output-format mp4'
-alias mp3='yt-dlp -x --embed-thumbnail --audio-format mp3'
+if command -v yt-dlp &> /dev/null; then
+    alias yt='yt-dlp -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4] / bv*+ba/b" --merge-output-format mp4'
+    alias mp3='yt-dlp -x --embed-thumbnail --audio-format mp3'
+fi
 alias p='python3'
 
 
@@ -291,33 +300,6 @@ sysinfo() {
     echo "Disk:   $(df -h / | awk 'NR==2 {print $3 "/" $2 " (" $5 ")"}')"
 }
 
-gitlog() {
-    git log --graph \
-        --pretty=format:'%C(red)%h%Creset %C(yellow)%d%Creset %s %C(green)(%cr) %C(bold blue)<%an>%Creset' \
-        --abbrev-commit "$@" |
-    fzf --ansi --no-sort --reverse \
-        --preview 'echo {}' \
-        --preview-window=down:3:wrap \
-        --bind 'enter:execute(echo {} | grep -o "[a-f0-9]\{7,\}" | head -1 | xargs git show --stat | less -R)'
-}
-
-pack() {
-    if [ -z "$1" ]; then
-        echo "Usage: pack <file/dir>"
-        return 1
-    fi
-    local target="${1%/}"
-    tar -cf - "$@" | pv -s $(du -scb "$@" | tail -1 | awk '{print $1}') > "${target}.tar"
-}
-
-unpack() {
-    if [ -z "$1" ]; then
-        echo "Usage: unpack <file.tar>"
-        return 1
-    fi
-    pv "$1" | tar -xf -
-}
-
 ex() {
     if [ -f "$1" ]; then
         case "$1" in
@@ -338,27 +320,11 @@ ex() {
     fi
 }
 
-mkv2mp4() {
-    if [ -z "$1" ]; then
-        echo "Usage: mkv2mp4 <video.mkv>"
-        return 1
-    fi
-    ffmpeg -v quiet -stats -i "$1" -c copy -c:a aac -movflags +faststart "${1%.*}.mp4"
-}
-
 j() {
     if command -v jq &> /dev/null; then
         jq . "$1"
     else
         echo "Error: jq is not installed"
-    fi
-}
-
-md2pdf() {
-    if command -v pandoc &> /dev/null; then
-        pandoc -o "${1%.*}.pdf" --template pdf_theme --listings --pdf-engine=xelatex --toc "$1"
-    else
-        echo "Error: pandoc is not installed"
     fi
 }
 
